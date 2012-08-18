@@ -1,0 +1,121 @@
+#!/usr/bin/python
+# ups, package manager for linux-based operating systems (though I'm
+# pretty sure it'd work on BSDs and derivatives and other Unix-likes)
+# written by dbro and licensed under version 3 of the GNU General
+# Public License.
+
+# IMPORTS:
+
+import sys
+from os import system
+
+version = 0.4
+
+# BACKEND CODE:
+
+binRepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/"
+srcRepo = "http://www.sites.google.com/site/upspackagemanager/repository/src/"
+pkgList = "/usr/share/ups-pkg-list.txt"
+pkgDB = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.txt"
+
+# Note to self: /etc/ups is where the _info text files are sent.
+
+def pkgInstall( pkg ):
+	# This installs the specified package.
+	filename = str(pkg)+".ar"
+	address = binRepo+filename
+	print "Downloading and extracting package..."
+	system("cd /etc/ups && sudo wget -q"+address+" && sudo ar -x "+filename+" && sudo rm "+filename+" && sudo mv "+pkg+" /usr/bin/"+pkg+" && cd /usr/bin && sudo chmod a+x "+pkg) # Do everything.
+	print "Updating ups-pkg-list..."
+	a = open(pkgList, 'a')
+	a.write(str(pkg)+"\n")
+	a.close()
+	print "Installation complete."
+
+def pkgSrcDL( srcpkg ):
+	# Downloads the source of the specified package.
+	srcfilename = str(srcpkg)+".ar"
+	srcaddress = srcRepo+srcfilename
+	system("cd ~ && mkdir "+srcpkg+" && cd "+srcpkg+" && wget -q"+srcaddress+" && ar -x "+srcfilename+" && rm "+filename) # Do everything.
+	print "Download complete."
+
+def pkgRemove( rmpkg ):
+	# Removes the specified package.
+	# Author's comments: This will be the easiest one to write (not that the other two were difficult.)
+	system("cd /usr/bin && sudo rm "+rmpkg)
+	print "Removal complete."
+	
+def pkgFileInstall( filedirectory, pkgname ):
+	system("cd "+filedirectory+" && ar -x "+pkgname+".ar && mv "+pkgname+" /usr/bin/"+pkgname+" && mv "+pkgname+"_info.txt /etc/ups && chmod a+x /usr/bin/"+pkgname)
+
+def showHelp():
+	print "ups"
+	print "install    - installs a package from network."
+	print "inst-file  - installs a package from file."
+	print "get-src    - downloads source code of a package into home directory."
+	print "update     - updates a package."
+	print "update-all - updates all packages."
+	print "remove     - removes a package."
+	print "help		  - show this help message."
+	print "version    - show version."
+	print "credits    - show credits."
+	print "version "+str(version)
+
+def showVers():
+	print "ups"
+	print "version "+str(version)
+
+def showCredits():
+	print "ups"
+	print "\ndeveloped and programmed by draven stedman"
+	
+def pkgUpdate(pkg0):
+	system("cd /usr/bin && sudo rm "+pkg0+" && sudo wget "+binRepo+pkg0+".ar && sudo ar -x "+pkg0+".ar && sudo rm "+pkg+".ar && sudo chmod a+x "+pkg0)
+
+def updateAllPackages():
+	b = open(pkgList, 'r')
+	for c in b:
+		pkgUpdate(c)
+		print "Update of package '"+c+"' completed."
+	b.close()
+	print "Update of all packages completed."
+
+# FRONTEND CODE:
+
+
+try:
+	if sys.argv[1] == "install":
+		try:
+			pkgInstall( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "get-src":
+		try:
+			pkgSrcDL( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "remove":
+		try:
+			pkgRemove( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "update":
+		try:
+			pkgUpdate( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "inst-file":
+		try:
+			pkgFileInstall( sys.argv[3], sys.argv[2]) # "ups inst-file 'pkg' 'directory'"
+		except IndexError:
+			print "No package or directory given."
+	elif sys.argv[1] == "credits":
+		showCredits()
+	elif sys.argv[1] == "update-all":
+		updateAllPackages()
+	elif sys.argv[1] == "help":
+		showHelp()
+	elif sys.argv[1] == "version":
+		showVers()
+except IndexError:
+	print "No operation given."

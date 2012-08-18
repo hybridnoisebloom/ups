@@ -1,0 +1,6 @@
+#!/usr/bin/python
+from os import system
+
+print "Downloading files..."
+system("cd /usr/bin && sudo rm ups && sudo wget http://www.sites.google.com/site/upspackagemanager/downloads/ups.gz && sudo gunzip ups.gz && sudo chmod a+x ups")
+print "Update complete."

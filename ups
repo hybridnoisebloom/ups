@@ -63,7 +63,7 @@ def pkginstall( pkg ):
 	
 	log0 = open(pkglist, 'a')
 	
-	log0.write( pkg )
+	log0.write( pkg+"\n" )
 
 def pkgremove( rmpkg ):
 	# Removes the specified package.

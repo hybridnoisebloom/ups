@@ -39,7 +39,7 @@ def pkginstall( pkg ):
 	archive1.extractall()
 	archive1.close()
 	log0 = open(pkglist, 'a')
-	log0.write( "" )
+	log0.write( pkg )
 
 def pkgremove( rmpkg ):
 	# Removes the specified package.
@@ -86,3 +86,20 @@ try:
 			pkgremove( sys.argv[2] )
 		except IndexError:
 			print "No package given."
+	elif sys.argv[1] == "update":
+		try:
+			pkgupdate( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "--credits":
+		showcredits()
+	elif sys.argv[1] == "--version":
+		showvers()
+	else:
+		print "usage: ups --credits"
+		print "		  ups --version"
+		print "       ups [operation] [package]"
+except IndexError:
+	print "usage: ups --credits"
+	print "		  ups --version"
+	print "       ups [operation] [package]"

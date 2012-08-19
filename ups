@@ -57,7 +57,6 @@ def pkginstall( pkg ):
 	
 			print "Unpacking '{member}' to '{dest}'".format(member=member_name, dest=dest)
 
-		# Assuming a method like this is provided by TarFile
 		archive.extract(member_name, dest)
 	
 	archive1.close()
@@ -72,7 +71,7 @@ def pkgremove( rmpkg ):
 	os.chdir("/usr/bin")
 	os.remove( rmpkg )
 	os.chdir("/etc/ups")
-	os.remove( rmpkg+"_info.txt" )
+	os.remove( rmpkg+"_info.json" )
 
 def showvers():
 	print "ups"
@@ -122,7 +121,7 @@ try:
 		showvers()
 	else:
 		print "usage: ups --credits"
-		print "		  ups --version"
+		print "	      ups --version"
 		print "       ups [operation] [package]"
 except IndexError:
 	print "usage: ups --credits"

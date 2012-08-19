@@ -11,6 +11,7 @@ from os import chdir, remove
 from urllib import urlopen
 import tarfile
 import bz2
+import argparse
 
 version = "0.5.1"
 
@@ -23,105 +24,51 @@ pkgDB = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.tx
 
 # Note to self: /etc/ups is where the _info text files are sent.
 
-def pkgInstall( pkg ):
+def pkginstall( pkg ):
 	# This installs the specified package.
 	filename = str(pkg)+".tar.bz2"
 	address = binRepo+filename
 	print "Downloading and extracting package..."
 	archive = urlopen(address, 'r').read()
-	chdir("/etc/ups")
+	chdir("/etc/ups")									# All of the credit here goes to Hollinski
 	archive0 = open(filename, 'wb')
 	archive0.write(archive)
 	bz2.decompress(filename)
 	archive1 = tarfile.open(filename, 'r')
 	archive1.extractall()
-	
 
-def pkgSrcDL( srcpkg ):
-	# Downloads the source of the specified package.
-	srcfilename = str(srcpkg)+".tar.bz2"
-	srcaddress = srcRepo+srcfilename
-	system("cd ~ && mkdir "+srcpkg+" && cd "+srcpkg+" && wget -q"+srcaddress+" && ar -x "+srcfilename+" && rm "+filename) # Do everything.
-	print "Download complete."
-
-def pkgRemove( rmpkg ):
+def pkgremove( rmpkg ):
 	# Removes the specified package.
 	# Author's comments: This will be the easiest one to write (not that the other two were difficult.)
-	system("cd /usr/bin && sudo rm "+rmpkg)
-	print "Removal complete."
-	
-def pkgFileInstall( filedirectory, pkgname ):
-	system("cd "+filedirectory+" && tar -x "+pkgname+".ar && mv "+pkgname+" /usr/bin/"+pkgname+" && mv "+pkgname+"_info.txt /etc/ups && chmod a+x /usr/bin/"+pkgname)
+	chdir("/usr/bin")
+	remove( rmpkg )
+	chdir("/etc/ups")
+	remove( rmpkg+"_info.txt" )
 
-def showHelp():
-	print "ups"
-	print "install    - installs a package from network."
-	print "inst-file  - installs a package from file."
-	print "get-src    - downloads source code of a package into home directory."
-	print "update     - updates a package."
-	print "update-all - updates all packages."
-	print "remove     - removes a package."
-	print "help		  - show this help message."
-	print "version    - show version."
-	print "credits    - show credits."
-	print "version "+str(version)
-
-def showVers():
+def showvers():
 	print "ups"
 	print "version "+str(version)
 
-def showCredits():
+def showcredits():
 	print "ups"
 	print "\ndeveloped and programmed by draven stedman"
-	print "with some help from hollinski"
+	print "with a bit of help from hollinski"
 	
 def pkgUpdate(pkg0):
-	system("cd /usr/bin && sudo rm "+pkg0+" && sudo wget "+binRepo+pkg0+".ar && sudo ar -x "+pkg0+".ar && sudo rm "+pkg+".ar && sudo chmod a+x "+pkg0)
+	chdir("/usr/bin")
+	remove( pkg0 )
+	pkginstall( pkg0 )
 
 def updateAllPackages():
 	b = open(pkgList, 'r')
 	for c in b:
-		pkgUpdate(c)
+		c = c.rstrip()
+		pkgupdate(c)
 		print "Update of package '"+c+"' completed."
 	b.close()
 	print "Update of all packages completed."
 
 # FRONTEND CODE:
 
+parser = argparse.ArgumentParser(description='ups package manager')
 
-try:
-	if sys.argv[1] == "install":
-		try:
-			pkgInstall( sys.argv[2] )
-		except IndexError:
-			print "No package given."
-	elif sys.argv[1] == "get-src":
-		try:
-			pkgSrcDL( sys.argv[2] )
-		except IndexError:
-			print "No package given."
-	elif sys.argv[1] == "remove":
-		try:
-			pkgRemove( sys.argv[2] )
-		except IndexError:
-			print "No package given."
-	elif sys.argv[1] == "update":
-		try:
-			pkgUpdate( sys.argv[2] )
-		except IndexError:
-			print "No package given."
-	elif sys.argv[1] == "inst-file":
-		try:
-			pkgFileInstall( sys.argv[3], sys.argv[2]) # "ups inst-file 'pkg' 'directory'"
-		except IndexError:
-			print "No package or directory given."
-	elif sys.argv[1] == "credits":
-		showCredits()
-	elif sys.argv[1] == "update-all":
-		updateAllPackages()
-	elif sys.argv[1] == "help":
-		showHelp()
-	elif sys.argv[1] == "version":
-		showVers()
-except IndexError:
-	print "No operation given."

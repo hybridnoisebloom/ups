@@ -17,25 +17,29 @@ version = "0.5.1"
 
 # BACKEND CODE:
 
-binRepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/"
-srcRepo = "http://www.sites.google.com/site/upspackagemanager/repository/src/"
-pkgList = "/usr/share/ups-pkg-list.txt"
-pkgDB = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.txt"
+binrepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/"
+srcrepo = "http://www.sites.google.com/site/upspackagemanager/repository/src/"
+pkglist = "/usr/share/ups-pkg-list.txt"
+pkgdb = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.txt"
 
 # Note to self: /etc/ups is where the _info text files are sent.
 
 def pkginstall( pkg ):
 	# This installs the specified package.
 	filename = str(pkg)+".tar.bz2"
-	address = binRepo+filename
+	address = binrepo+filename
 	print "Downloading and extracting package..."
 	archive = urlopen(address, 'r').read()
 	chdir("/etc/ups")									# All of the credit here goes to Hollinski
 	archive0 = open(filename, 'wb')
 	archive0.write(archive)
+	archive0.close()
 	bz2.decompress(filename)
 	archive1 = tarfile.open(filename, 'r')
 	archive1.extractall()
+	archive1.close()
+	log0 = open(pkglist, 'a')
+	log0.write( "" )
 
 def pkgremove( rmpkg ):
 	# Removes the specified package.
@@ -54,12 +58,12 @@ def showcredits():
 	print "\ndeveloped and programmed by draven stedman"
 	print "with a bit of help from hollinski"
 	
-def pkgUpdate(pkg0):
+def pkgupdate(pkg0):
 	chdir("/usr/bin")
 	remove( pkg0 )
 	pkginstall( pkg0 )
 
-def updateAllPackages():
+def updateallpkg():
 	b = open(pkgList, 'r')
 	for c in b:
 		c = c.rstrip()
@@ -70,5 +74,15 @@ def updateAllPackages():
 
 # FRONTEND CODE:
 
-parser = argparse.ArgumentParser(description='ups package manager')
 
+try:
+	if sys.argv[1] == "install":
+		try:
+			pkginstall( sys.argv[2] )
+		except IndexError:
+			print "No package given."
+	elif sys.argv[1] == "remove":
+		try:
+			pkgremove( sys.argv[2] )
+		except IndexError:
+			print "No package given."

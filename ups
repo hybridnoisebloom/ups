@@ -7,9 +7,12 @@
 # IMPORTS:
 
 import sys
-from os import system
+from os import chdir, remove
+from urllib import urlopen
+import tarfile
+import bz2
 
-version = 0.4
+version = "0.5.1"
 
 # BACKEND CODE:
 
@@ -22,19 +25,21 @@ pkgDB = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.tx
 
 def pkgInstall( pkg ):
 	# This installs the specified package.
-	filename = str(pkg)+".ar"
+	filename = str(pkg)+".tar.bz2"
 	address = binRepo+filename
 	print "Downloading and extracting package..."
-	system("cd /etc/ups && sudo wget -q"+address+" && sudo ar -x "+filename+" && sudo rm "+filename+" && sudo mv "+pkg+" /usr/bin/"+pkg+" && cd /usr/bin && sudo chmod a+x "+pkg) # Do everything.
-	print "Updating ups-pkg-list..."
-	a = open(pkgList, 'a')
-	a.write(str(pkg)+"\n")
-	a.close()
-	print "Installation complete."
+	archive = urlopen(address, 'r').read()
+	chdir("/etc/ups")
+	archive0 = open(filename, 'wb')
+	archive0.write(archive)
+	bz2.decompress(filename)
+	archive1 = tarfile.open(filename, 'r')
+	archive1.extractall()
+	
 
 def pkgSrcDL( srcpkg ):
 	# Downloads the source of the specified package.
-	srcfilename = str(srcpkg)+".ar"
+	srcfilename = str(srcpkg)+".tar.bz2"
 	srcaddress = srcRepo+srcfilename
 	system("cd ~ && mkdir "+srcpkg+" && cd "+srcpkg+" && wget -q"+srcaddress+" && ar -x "+srcfilename+" && rm "+filename) # Do everything.
 	print "Download complete."
@@ -46,7 +51,7 @@ def pkgRemove( rmpkg ):
 	print "Removal complete."
 	
 def pkgFileInstall( filedirectory, pkgname ):
-	system("cd "+filedirectory+" && ar -x "+pkgname+".ar && mv "+pkgname+" /usr/bin/"+pkgname+" && mv "+pkgname+"_info.txt /etc/ups && chmod a+x /usr/bin/"+pkgname)
+	system("cd "+filedirectory+" && tar -x "+pkgname+".ar && mv "+pkgname+" /usr/bin/"+pkgname+" && mv "+pkgname+"_info.txt /etc/ups && chmod a+x /usr/bin/"+pkgname)
 
 def showHelp():
 	print "ups"
@@ -68,6 +73,7 @@ def showVers():
 def showCredits():
 	print "ups"
 	print "\ndeveloped and programmed by draven stedman"
+	print "with some help from hollinski"
 	
 def pkgUpdate(pkg0):
 	system("cd /usr/bin && sudo rm "+pkg0+" && sudo wget "+binRepo+pkg0+".ar && sudo ar -x "+pkg0+".ar && sudo rm "+pkg+".ar && sudo chmod a+x "+pkg0)

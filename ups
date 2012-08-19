@@ -100,5 +100,5 @@ try:
 		print "       ups [operation] [package]"
 except IndexError:
 	print "usage: ups --credits"
-	print "		  ups --version"
+	print "       ups --version"
 	print "       ups [operation] [package]"

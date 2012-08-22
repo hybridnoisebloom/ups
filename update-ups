@@ -1,6 +1,42 @@
-#!/usr/bin/python
-from os import system
+#!/usr/bin/python2
+# That's to make sure that Python 2 runs this.
 
-print "Downloading files..."
-system("cd /usr/bin && sudo rm ups && sudo wget http://www.sites.google.com/site/upspackagemanager/downloads/ups.gz && sudo gunzip ups.gz && sudo chmod a+x ups")
+import urllib
+from tarfile import extractall
+from bz2 import decompress
+from os import chdir, remove, chmod
+
+chdir( "/usr/bin" )
+remove( "ups" )
+
+# Change directory to /usr/bin and delete the current version of ups.
+
+chdir( "/etc/ups" )
+
+# Then, change directory to /etc/ups and continue with the updating.
+
+new_ups = urllib.urlopen( "http://www.sites.google.com/site/upspackagemanager/downloads/ups.tar.bz2" ).read()
+
+# Next, open the URL, read the binary into the variable new_ups.
+
+ups_archive = open( "ups.tar.bz2", 'wb' )
+ups_archive.write( new_ups )
+ups_archive.close()
+
+# Then, binary-write the binary of the URL into the file on the system in /etc/ups.
+
+decompress( "ups.tar.bz2" )
+
+# Decompress the BZ2 compression.
+
+extractall("/usr/bin")
+
+# Extract the file(s) into /usr/bin.
+
+remove( "ups.tar.bz2" )
+chdir( "/usr/bin" )
+chmod( "ups",  111 )
+
+# Delete the archive, chdir into /usr/bin and chmod UPS to executable.
+ 
 print "Update complete."

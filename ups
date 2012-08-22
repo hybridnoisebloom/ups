@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # ups, package manager for linux-based operating systems (though I'm
 # pretty sure it'd work on BSDs and derivatives and other Unix-likes)
 # written by dbro and licensed under version 3 of the GNU General
@@ -8,7 +8,7 @@
 
 import sys
 import os
-from urllib import urlopen
+import urllib
 import tarfile
 import bz2
 import json
@@ -30,7 +30,7 @@ def pkginstall( pkg ):
 	
 	print "Downloading and extracting package..."
 	
-	archive = urlopen(address, 'r').read()
+	archive = urllib.urlopen(address, 'r').read()
 	
 	os.chdir("/etc/ups")									# All of the credit here goes to Hollinski
 	

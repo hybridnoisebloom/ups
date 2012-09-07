@@ -1,8 +1,6 @@
-#!/usr/bin/python2
-# ups, package manager for linux-based operating systems (though I'm
-# pretty sure it'd work on BSDs and derivatives and other Unix-likes)
-# written by dbro and licensed under version 3 of the GNU General
-# Public License.
+#!/usr/bin/env python2
+# ups, package manager for linux, solaris, *bsd, and mac os x.
+# written by dbro and licensed under the simplified BSD licenses
 
 # IMPORTS:
 
@@ -13,16 +11,22 @@ import tarfile
 import bz2
 import json
 
-version = "0.5.1"
+version = "0.5pre2"
 
 # BACKEND CODE:
 
-binrepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/"
-srcrepo = "http://www.sites.google.com/site/upspackagemanager/repository/src/"
-pkglist = "/usr/share/ups-pkg-list.txt"
-pkgdb = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.txt"
+if sys.platform.startswith("darwin"):
+	binrepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/osx"
+	ups_stuff = "/Applications/ups"
+	pkglist = "/Applications/ups/ups-pkg-list.txt"
+	pkgdb = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db-osx.txt"
+else:
+	binrepo = "http://www.sites.google.com/site/upspackagemanager/repository/bin/unixlike"
+	ups_stuff = "/etc/ups"
+	pkglist = "/etc/ups/ups-pkg-list.txt"
+	pkgdb = "http://www.sites.google.com/site/upspackagemanager/repository/ups-db.txt"
 
-def pkginstall( pkg ):
+def pkg_install( pkg ):
 	# This installs the specified package.
 	filename = str(pkg)+".tar.bz2"
 	address = binrepo+filename
@@ -46,10 +50,15 @@ def pkginstall( pkg ):
 	
 	jsonstuff = json.load(pkginfo)
 	
+	# Look at and print the Metainfo.
+	for stuff in jsonstuff["meta-inf"]:
+		print stuff
+			
 	# Install dependencies:
 	for dep in jsonstuff["depends"]:
 		pkginstall( dep )
 	
+	# Copy stuff to other places:
 	for dir_ in jsonstuff["path_map"]:
 		for member_name in jsonstuff["path_map"][dir_]:
 			
@@ -65,29 +74,60 @@ def pkginstall( pkg ):
 	
 	log0.write( pkg+"\n" )
 
-def pkgremove( rmpkg ):
+def pkg_remove( rmpkg ):
 	# Removes the specified package.
 	# Author's comments: This will be the easiest one to write (not that the other two were difficult.)
-	os.chdir("/usr/bin")
-	os.remove( rmpkg )
-	os.chdir("/etc/ups")
-	os.remove( rmpkg+"_info.json" )
+	os.chdir(ups_stuff)
+	jsonstuff0 = json.load(rmpkg+"_info.json")
+	for dir_ in jsonstuff0["pathmap"]:
+		dest = os.path.join(dir_, member_name)
+		os.remove(dest)
+	os.remove(rmpkg+"_info.json")
 
-def showvers():
+def show_vers():
 	print "ups"
 	print "version "+str(version)
 
-def showcredits():
+def show_credits():
 	print "ups"
 	print "\ndeveloped and programmed by draven stedman"
-	print "with a bit of help from hollinski"
+
+def show_license():
+	print "Copyleft (c) 2012, Draven Stedman"
+	print "All rights reserved."
+	print "\nRedistribution and use in source and binary forms,"
+	print "with or without modification, are permitted provided"
+	print "that the following conditions are met:"
+	print "\n"
+	print "I. Redistributions of source code must retain the above"
+	print "   copyright notice, this list of conditions and the "
+	print "   following disclaimer."
+	print "II. Redistributions in binary form must reproduce the above "
+	print "    copyright notice, this list of conditions and the following "
+	print "    disclaimer in the documentation and/or other materials"
+	print "    provided with the distribution."
+	print "\n"
+	print "THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND "
+	print "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,"
+	print "INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF "
+	print "MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED."
+	print "IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE"
+	print "FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR "
+	print "CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT"
+	print "OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;"
+	print "OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+	print "LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT "
+	print "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF"
+	print "THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY"
+	print "OF SUCH DAMAGE."
+
 	
-def pkgupdate(pkg0):
+def pkg_update(pkg0):
 	os.chdir("/usr/bin")
 	os.remove( pkg0 )
 	pkginstall( pkg0 )
 
-def updateallpkg():
+def update_all_pkg():
 	b = open(pkgList, 'r')
 	for c in b:
 		c = c.rstrip()
@@ -102,23 +142,25 @@ def updateallpkg():
 try:
 	if sys.argv[1] == "install":
 		try:
-			pkginstall( sys.argv[2] )
+			pkg_install( sys.argv[2] )
 		except IndexError:
 			print "No package given."
 	elif sys.argv[1] == "remove":
 		try:
-			pkgremove( sys.argv[2] )
+			pkg_remove( sys.argv[2] )
 		except IndexError:
 			print "No package given."
 	elif sys.argv[1] == "update":
 		try:
-			pkgupdate( sys.argv[2] )
+			pkg_update( sys.argv[2] )
 		except IndexError:
 			print "No package given."
 	elif sys.argv[1] == "--credits":
-		showcredits()
+		show_credits()
 	elif sys.argv[1] == "--version":
-		showvers()
+		show_vers()
+	elif sys.argv[1] == "--license":
+		show_license()
 	else:
 		print "usage: ups --credits"
 		print "	      ups --version"
@@ -126,4 +168,5 @@ try:
 except IndexError:
 	print "usage: ups --credits"
 	print "       ups --version"
+	print "       ups --license"
 	print "       ups [operation] [package]"
